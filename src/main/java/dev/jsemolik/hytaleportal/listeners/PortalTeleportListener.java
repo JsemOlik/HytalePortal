@@ -199,8 +199,16 @@ public class PortalTeleportListener {
                 return;
             }
 
-            // Calculate destination position (center of destination portal)
-            Vector3d destinationPos = destinationPortal.getCenterPosition();
+            // Calculate destination position - exit in front of the destination portal
+            Vector3d portalCenter = destinationPortal.getCenterPosition();
+            Vector3d portalNormal = destinationPortal.getNormalVector();
+            
+            // Place player 1 block in front of the destination portal
+            Vector3d destinationPos = new Vector3d(
+                portalCenter.x + portalNormal.x * 1.0,
+                portalCenter.y,
+                portalCenter.z + portalNormal.z * 1.0
+            );
 
             // Teleport the player on the world thread
             destinationWorld.execute(() -> {

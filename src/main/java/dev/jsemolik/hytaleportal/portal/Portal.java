@@ -21,8 +21,8 @@ public class Portal {
     /**
      * Portal dimensions (in blocks)
      */
-    public static final int WIDTH = 2;
-    public static final int HEIGHT = 3;
+    public static final int WIDTH = 1;
+    public static final int HEIGHT = 2;
 
     public Portal(UUID ownerUUID, PortalType type, Vector3d position, Vector3f rotation, String worldName) {
         this.ownerUUID = ownerUUID;
@@ -62,9 +62,9 @@ public class Portal {
      */
     public Vector3d getCenterPosition() {
         return new Vector3d(
-            position.x + (WIDTH / 2.0),
-            position.y + (HEIGHT / 2.0),
-            position.z + (WIDTH / 2.0)
+            position.x + 0.5,
+            position.y + 1.0,
+            position.z + 0.5
         );
     }
 
