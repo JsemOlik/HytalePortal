@@ -1,10 +1,15 @@
-C:\Users\olik\Desktop\Hytale\Plugins\HytalePortal\src\main\java\dev\jsemolik\hytaleportal\listeners\PortalTeleportListener.java:133: error: cannot find symbol
-        Vector3i[] framePositions = portal.getFramePositions();
-        ^
-  symbol:   class Vector3i
-  location: class PortalTeleportListener
-C:\Users\olik\Desktop\Hytale\Plugins\HytalePortal\src\main\java\dev\jsemolik\hytaleportal\listeners\PortalTeleportListener.java:137: error: cannot find symbol
-        for (Vector3i blockPos : framePositions) {
-             ^
-  symbol:   class Vector3i
-  location: class PortalTeleportListener
+C:\Users\olik\Desktop\Hytale\Plugins\HytalePortal\src\main\java\dev\jsemolik\hytaleportal\listeners\PortalTeleportListener.java:220: error: cannot find symbol
+                playerRef.getReference().getPosition().x,
+                                        ^
+  symbol:   method getPosition()
+  location: class Ref<EntityStore>
+C:\Users\olik\Desktop\Hytale\Plugins\HytalePortal\src\main\java\dev\jsemolik\hytaleportal\listeners\PortalTeleportListener.java:221: error: cannot find symbol
+                playerRef.getReference().getPosition().y,
+                                        ^
+  symbol:   method getPosition()
+  location: class Ref<EntityStore>
+C:\Users\olik\Desktop\Hytale\Plugins\HytalePortal\src\main\java\dev\jsemolik\hytaleportal\listeners\PortalTeleportListener.java:222: error: cannot find symbol
+                playerRef.getReference().getPosition().z,
+                                        ^
+  symbol:   method getPosition()
+  location: class Ref<EntityStore>

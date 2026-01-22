@@ -202,12 +202,24 @@ public class PortalTeleportListener {
             // Calculate destination position - exit in front of the destination portal
             Vector3d portalCenter = destinationPortal.getCenterPosition();
             Vector3d portalNormal = destinationPortal.getNormalVector();
+            Vector3d currentPlayerPos = playerRef.getTransform().getPosition();
+            
+            HytalePortal.getPluginLogger().atInfo().log(
+                "Portal yaw: %s, Normal: (%s, %s, %s)",
+                destinationPortal.getRotation().y, portalNormal.x, portalNormal.y, portalNormal.z
+            );
             
             // Place player 1 block in front of the destination portal
             Vector3d destinationPos = new Vector3d(
                 portalCenter.x + portalNormal.x * 1.0,
                 portalCenter.y,
                 portalCenter.z + portalNormal.z * 1.0
+            );
+            
+            HytalePortal.getPluginLogger().atInfo().log(
+                "Teleporting from (%s, %s, %s) to (%s, %s, %s)",
+                currentPlayerPos.x, currentPlayerPos.y, currentPlayerPos.z,
+                destinationPos.x, destinationPos.y, destinationPos.z
             );
 
             // Teleport the player on the world thread
