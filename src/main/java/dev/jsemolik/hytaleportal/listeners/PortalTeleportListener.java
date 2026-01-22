@@ -165,12 +165,20 @@ public class PortalTeleportListener {
         );
         
         // Dot product tells us which side the player is on
-        // Negative = player is on the "front" side (where it was shot from)
+        // Positive = player is on the "front" side (same direction as normal)
         double dotProduct = toPlayer.x * portalNormal.x + 
                            toPlayer.y * portalNormal.y + 
                            toPlayer.z * portalNormal.z;
         
-        return dotProduct < 0; // Only allow entry from front
+        HytalePortal.getPluginLogger().atInfo().log(
+            "Player pos: (%s, %s, %s), Portal center: (%s, %s, %s), Normal: (%s, %s, %s), Dot: %s",
+            playerPos.x, playerPos.y, playerPos.z,
+            portalCenter.x, portalCenter.y, portalCenter.z,
+            portalNormal.x, portalNormal.y, portalNormal.z,
+            dotProduct
+        );
+        
+        return dotProduct > 0; // Only allow entry from front (same side as normal)
     }
 
     /**
