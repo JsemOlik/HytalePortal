@@ -68,7 +68,7 @@ public class PortalVisualizer {
                 }
             });
         } catch (Exception e) {
-            HytalePortal.getPluginLogger().atError().log("Error updating portal particles: %s", e.getMessage());
+            HytalePortal.getPluginLogger().atError().log("Error updating portal particles: {}", e.getMessage());
         }
     }
     
@@ -88,7 +88,7 @@ public class PortalVisualizer {
                 createPortalParticles(portal, world);
             } catch (Exception e) {
                 HytalePortal.getPluginLogger().atError().log(
-                    "Error creating particles for portal: %s",
+                    "Error creating particles for portal: {}",
                     e.getMessage()
                 );
             }

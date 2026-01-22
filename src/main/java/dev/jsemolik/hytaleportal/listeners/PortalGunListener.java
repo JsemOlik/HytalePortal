@@ -7,6 +7,7 @@ import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.event.events.player.PlayerInteractEvent;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
+import com.hypixel.hytale.server.core.universe.Universe;
 import com.hypixel.hytale.server.core.universe.world.World;
 import dev.jsemolik.hytaleportal.HytalePortal;
 import dev.jsemolik.hytaleportal.portal.Portal;
@@ -26,7 +27,8 @@ public class PortalGunListener {
      * Register this listener with the event registry
      */
     public static void register(HytalePortal plugin) {
-        plugin.getEventRegistry().register(PlayerInteractEvent.class, event -> {
+        // PlayerInteractEvent uses World as the key type
+        plugin.getEventRegistry().registerGlobal(PlayerInteractEvent.class, event -> {
             handleInteraction(event);
         });
     }
@@ -62,12 +64,15 @@ public class PortalGunListener {
         // Cancel the default interaction
         event.setCancelled(true);
 
-        // Get player reference for UUID and transform
-        PlayerRef playerRef = player.toPlayerRef();
+        // Get player reference from Universe
+        PlayerRef playerRef = Universe.get().getPlayer(player.getUuid());
+        if (playerRef == null) {
+            return;
+        }
 
         // Get player's look direction and position
         World world = player.getWorld();
-        Vector3d playerPos = playerRef.getTransform().position();
+        Vector3d playerPos = playerRef.getTransform().getPosition();
         Vector3f playerRot = playerRef.getHeadRotation();
 
         // Calculate portal placement position
@@ -96,7 +101,7 @@ public class PortalGunListener {
         );
 
         HytalePortal.getPluginLogger().atInfo().log(
-            "Player %s created a %s portal at %s",
+            "Player {} created a {} portal at {}",
             playerRef.getUsername(),
             colorName,
             portalPosition

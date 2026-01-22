@@ -28,7 +28,7 @@ public class PlayerDisconnectListener {
         PortalManager.getInstance().removeAllPortals(playerUUID);
         
         HytalePortal.getPluginLogger().atInfo().log(
-            "Removed portals for disconnected player: %s",
+            "Removed portals for disconnected player: {}",
             playerName
         );
     }

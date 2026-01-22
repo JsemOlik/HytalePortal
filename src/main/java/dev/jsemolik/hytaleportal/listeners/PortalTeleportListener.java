@@ -48,7 +48,7 @@ public class PortalTeleportListener {
             TimeUnit.MILLISECONDS
         );
 
-        HytalePortal.getPluginLogger().info("Portal teleport checker started");
+        HytalePortal.getPluginLogger().atInfo().log("Portal teleport checker started");
     }
 
     /**
@@ -58,7 +58,7 @@ public class PortalTeleportListener {
         if (checkTask != null) {
             checkTask.cancel(false);
             checkTask = null;
-            HytalePortal.getPluginLogger().info("Portal teleport checker stopped");
+            HytalePortal.getPluginLogger().atInfo().log("Portal teleport checker stopped");
         }
         lastTeleportTime.clear();
     }
@@ -108,7 +108,7 @@ public class PortalTeleportListener {
                 }
             }
         } catch (Exception e) {
-            HytalePortal.getPluginLogger().error(
+            HytalePortal.getPluginLogger().atError().log(
                 "Error checking portal teleports: {}",
                 e.getMessage()
             );
@@ -146,7 +146,7 @@ public class PortalTeleportListener {
             // Get destination world
             World destinationWorld = Universe.get().getWorld(destinationPortal.getWorldName());
             if (destinationWorld == null) {
-                HytalePortal.getPluginLogger().warn(
+                HytalePortal.getPluginLogger().atWarn().log(
                     "Cannot teleport player {}: destination world not found",
                     playerRef.getUsername()
                 );
@@ -165,9 +165,9 @@ public class PortalTeleportListener {
                     // Update player position
                     playerRef.updatePosition(destinationWorld,
                         new Transform(
-                            destinationPos,
-                            currentRotation,
-                            new Vector3f(1, 1, 1) // Default scale
+                            destinationPos.x, destinationPos.y, destinationPos.z,
+                            currentRotation.x, currentRotation.y, currentRotation.z,
+                            1, 1, 1 // Default scale
                         ),
                         currentRotation
                     );
@@ -182,13 +182,13 @@ public class PortalTeleportListener {
                             .italic(true)
                     );
 
-                    HytalePortal.getPluginLogger().info(
+                    HytalePortal.getPluginLogger().atInfo().log(
                         "Player {} teleported through portal to {}",
                         playerRef.getUsername(),
                         destinationPos
                     );
                 } catch (Exception e) {
-                    HytalePortal.getPluginLogger().error(
+                    HytalePortal.getPluginLogger().atError().log(
                         "Error teleporting player {}: {}",
                         playerRef.getUsername(),
                         e.getMessage()
@@ -196,7 +196,7 @@ public class PortalTeleportListener {
                 }
             });
         } catch (Exception e) {
-            HytalePortal.getPluginLogger().error(
+            HytalePortal.getPluginLogger().atError().log(
                 "Error in teleportPlayer: {}",
                 e.getMessage()
             );
