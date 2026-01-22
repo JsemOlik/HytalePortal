@@ -249,8 +249,7 @@ public class PortalTeleportListener {
                     Vector3f currentBodyRot = transformComponent.getRotation();
                     
                     // Set player rotation to face outward from the destination portal
-                    // Adjust by +45 degrees to face straight forward
-                    float portalYaw = destinationPortal.getRotation().y + 45f;
+                    float portalYaw = destinationPortal.getRotation().y;
                     Vector3f newBodyRot = new Vector3f(currentBodyRot.x, portalYaw, currentBodyRot.z);
                     Vector3f newHeadRot = new Vector3f(currentHeadRot.x, portalYaw, currentHeadRot.z);
                     

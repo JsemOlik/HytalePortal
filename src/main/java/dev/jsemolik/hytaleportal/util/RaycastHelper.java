@@ -99,24 +99,24 @@ public class RaycastHelper {
         if (absDx > absDz) {
             // Hit on X-axis face (east/west wall)
             if (dx > 0) {
-                // Hit west face, place portal on east side
+                // Hit west face, place portal on east side, facing west
                 portalPos = new Vector3d(targetBlock.x + 1, targetBlock.y, targetBlock.z);
-                yaw = 180; // Face west (adjusted +90)
+                yaw = 270; // Face west
             } else {
-                // Hit east face, place portal on west side  
+                // Hit east face, place portal on west side, facing east  
                 portalPos = new Vector3d(targetBlock.x - 1, targetBlock.y, targetBlock.z);
-                yaw = 0; // Face east (adjusted +90)
+                yaw = 90; // Face east
             }
         } else {
             // Hit on Z-axis face (north/south wall)
             if (dz > 0) {
-                // Hit north face, place portal on south side
+                // Hit north face, place portal on south side, facing north
                 portalPos = new Vector3d(targetBlock.x, targetBlock.y, targetBlock.z + 1);
-                yaw = 270; // Face north (adjusted +90)
+                yaw = 0; // Face north
             } else {
-                // Hit south face, place portal on north side
+                // Hit south face, place portal on north side, facing south
                 portalPos = new Vector3d(targetBlock.x, targetBlock.y, targetBlock.z - 1);
-                yaw = 90; // Face south (adjusted +90)
+                yaw = 180; // Face south
             }
         }
         
