@@ -222,7 +222,7 @@ public class PortalTeleportListener {
                     
                     var store = entityRef.getStore();
                     
-                    // Get current rotation components to preserve them
+                    // Get current rotation components
                     var headRotation = store.getComponent(entityRef, 
                         com.hypixel.hytale.server.core.modules.entity.component.HeadRotation.getComponentType());
                     var transformComponent = store.getComponent(entityRef,
@@ -236,11 +236,17 @@ public class PortalTeleportListener {
                     Vector3f currentHeadRot = headRotation.getRotation();
                     Vector3f currentBodyRot = transformComponent.getRotation();
                     
-                    // Create teleport component using the proper API
+                    // Set player rotation to face outward from the destination portal
+                    // Adjust by +45 degrees to face straight forward
+                    float portalYaw = destinationPortal.getRotation().y + 45f;
+                    Vector3f newBodyRot = new Vector3f(currentBodyRot.x, portalYaw, currentBodyRot.z);
+                    Vector3f newHeadRot = new Vector3f(currentHeadRot.x, portalYaw, currentHeadRot.z);
+                    
+                    // Create teleport component with new rotation to face outward
                     var teleport = com.hypixel.hytale.server.core.modules.entity.teleport.Teleport.createForPlayer(
                         destinationPos,
-                        currentBodyRot
-                    ).setHeadRotation(currentHeadRot);
+                        newBodyRot
+                    ).setHeadRotation(newHeadRot);
                     
                     // Add the teleport component to trigger teleportation
                     store.addComponent(entityRef, 

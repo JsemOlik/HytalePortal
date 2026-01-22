@@ -125,11 +125,8 @@ public class PortalVisualizer {
         Vector3i[] framePositions = portal.getFramePositions();
 
         // Block type to use for visualization
-        // Blue portal: Blue crystal blocks
-        // Orange portal: Red crystal blocks
-        String blockType = (portal.getType() == PortalType.BLUE) ?
-            "Cloth_Block_Wool_Blue" :  // Blue portal
-            "Cloth_Block_Wool_Orange";     // Orange portal
+        // Using Debug_Block for both portals
+        String blockType = "Debug_Block";
 
         try {
             // Log portal creation attempt
