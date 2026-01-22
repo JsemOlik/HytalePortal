@@ -7,6 +7,8 @@ import com.hypixel.hytale.server.core.universe.Universe;
 import com.hypixel.hytale.server.core.universe.world.World;
 import dev.jsemolik.hytaleportal.HytalePortal;
 
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -17,6 +19,9 @@ import java.util.concurrent.TimeUnit;
 public class PortalVisualizer {
     
     private ScheduledFuture<?> particleTask;
+    
+    // Track which portals have had their blocks placed (using creation time as unique ID)
+    private final Set<Long> placedPortals = ConcurrentHashMap.newKeySet();
     
     /**
      * Start the particle visualization task
@@ -49,6 +54,8 @@ public class PortalVisualizer {
             particleTask = null;
             HytalePortal.getPluginLogger().atInfo().log("Portal visualizer stopped");
         }
+        // Clear tracking set
+        placedPortals.clear();
     }
     
     /**
@@ -58,14 +65,6 @@ public class PortalVisualizer {
         try {
             PortalManager manager = PortalManager.getInstance();
             var portalPairs = manager.getAllPortalPairs();
-
-            // Debug log every 100 updates (every 5 seconds at 50ms interval)
-            if (System.currentTimeMillis() % 5000 < 50) {
-                HytalePortal.getPluginLogger().atInfo().log(
-                    "PortalVisualizer.updateParticles: Processing {} portal pairs",
-                    portalPairs.size()
-                );
-            }
 
             // Iterate through all portal pairs
             portalPairs.forEach((playerUUID, portalPair) -> {
@@ -89,6 +88,14 @@ public class PortalVisualizer {
      * Create particle effects for a single portal
      */
     private void visualizePortal(Portal portal) {
+        // Only place blocks for portals that haven't been placed yet
+        long portalId = portal.getCreationTime();
+        
+        if (placedPortals.contains(portalId)) {
+            // Blocks already placed for this portal - just render particles in future
+            return;
+        }
+        
         // Get the world
         World world = Universe.get().getWorld(portal.getWorldName());
         if (world == null) {
@@ -98,10 +105,12 @@ public class PortalVisualizer {
         // Execute on world thread for thread safety
         world.execute(() -> {
             try {
-                createPortalParticles(portal, world);
+                placePortalBlocks(portal, world);
+                // Mark this portal as having its blocks placed
+                placedPortals.add(portalId);
             } catch (Exception e) {
                 HytalePortal.getPluginLogger().atInfo().log("[ERROR] " + 
-                    "Error creating particles for portal: {}",
+                    "Error creating blocks for portal: {}",
                     e.getMessage()
                 );
             }
@@ -109,9 +118,9 @@ public class PortalVisualizer {
     }
     
     /**
-     * Create visual effects for a portal using blocks
+     * Place blocks for a portal (called once per portal)
      */
-    private void createPortalParticles(Portal portal, World world) {
+    private void placePortalBlocks(Portal portal, World world) {
         // Get all frame positions
         Vector3i[] framePositions = portal.getFramePositions();
 
@@ -119,8 +128,8 @@ public class PortalVisualizer {
         // Blue portal: Blue crystal blocks
         // Orange portal: Red crystal blocks
         String blockType = (portal.getType() == PortalType.BLUE) ?
-            "Rock_Crystal_Blue_Small" :  // Blue portal - blue crystal
-            "Rock_Crystal_Red_Small";     // Orange portal - red crystal
+            "Cloth_Block_Wool_Blue" :  // Blue portal
+            "Cloth_Block_Wool_Orange";     // Orange portal
 
         try {
             // Log portal creation attempt
@@ -179,7 +188,7 @@ public class PortalVisualizer {
         } catch (Exception e) {
             // Log top-level exceptions
             HytalePortal.getPluginLogger().atInfo().log(
-                "Exception in createPortalParticles: {}",
+                "Exception in placePortalBlocks: {}",
                 e.getMessage()
             );
             e.printStackTrace();
@@ -204,6 +213,9 @@ public class PortalVisualizer {
         if (portal == null) {
             return;
         }
+
+        // Remove from tracking set
+        placedPortals.remove(portal.getCreationTime());
 
         try {
             World world = Universe.get().getWorld(portal.getWorldName());
