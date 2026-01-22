@@ -3,6 +3,8 @@ package dev.jsemolik.hytaleportal;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
+import dev.jsemolik.hytaleportal.commands.Portal1Command;
+import dev.jsemolik.hytaleportal.commands.Portal2Command;
 import dev.jsemolik.hytaleportal.commands.PortalGunCommand;
 import dev.jsemolik.hytaleportal.listeners.PlayerDisconnectListener;
 import dev.jsemolik.hytaleportal.listeners.PortalGunListener;
@@ -26,6 +28,8 @@ public class HytalePortal extends JavaPlugin {
         LOGGER.atInfo().log("Setting up HytalePortal plugin...");
 
         // Register commands
+        this.getCommandRegistry().registerCommand(new Portal1Command());
+        this.getCommandRegistry().registerCommand(new Portal2Command());
         this.getCommandRegistry().registerCommand(new PortalGunCommand());
         this.getCommandRegistry().registerCommand(new ExampleCommand(this.getName(), this.getManifest().getVersion().toString()));
 
