@@ -108,10 +108,7 @@ public class PortalTeleportListener {
                 }
             }
         } catch (Exception e) {
-            HytalePortal.getPluginLogger().atInfo().log("[ERROR] " + 
-                "Error checking portal teleports: {}",
-                e.getMessage()
-            );
+            HytalePortal.getPluginLogger().atInfo().log("[ERROR] Error checking portal teleports: " + e.getMessage());
         }
     }
 
@@ -146,10 +143,7 @@ public class PortalTeleportListener {
             // Get destination world
             World destinationWorld = Universe.get().getWorld(destinationPortal.getWorldName());
             if (destinationWorld == null) {
-                HytalePortal.getPluginLogger().atInfo().log("[WARN] " + 
-                    "Cannot teleport player {}: destination world not found",
-                    playerRef.getUsername()
-                );
+                HytalePortal.getPluginLogger().atInfo().log("[WARN] Cannot teleport player " + playerRef.getUsername() + ": destination world not found");
                 return;
             }
 
@@ -178,24 +172,13 @@ public class PortalTeleportListener {
                             .italic(true)
                     );
 
-                    HytalePortal.getPluginLogger().atInfo().log(
-                        "Player {} teleported through portal to {}",
-                        playerRef.getUsername(),
-                        destinationPos
-                    );
+                    HytalePortal.getPluginLogger().atInfo().log("Player " + playerRef.getUsername() + " teleported through portal to " + destinationPos);
                 } catch (Exception e) {
-                    HytalePortal.getPluginLogger().atInfo().log("[ERROR] " + 
-                        "Error teleporting player {}: {}",
-                        playerRef.getUsername(),
-                        e.getMessage()
-                    );
+                    HytalePortal.getPluginLogger().atInfo().log("[ERROR] Error teleporting player " + playerRef.getUsername() + ": " + e.getMessage());
                 }
             });
         } catch (Exception e) {
-            HytalePortal.getPluginLogger().atInfo().log("[ERROR] " + 
-                "Error in teleportPlayer: {}",
-                e.getMessage()
-            );
+            HytalePortal.getPluginLogger().atInfo().log("[ERROR] Error in teleportPlayer: " + e.getMessage());
         }
     }
 

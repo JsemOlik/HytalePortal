@@ -20,7 +20,7 @@ public class HytalePortal extends JavaPlugin {
     public HytalePortal(JavaPluginInit init) {
         super(init);
         instance = this;
-        LOGGER.atInfo().log("Hello from {} version {}", this.getName(), this.getManifest().getVersion().toString());
+        LOGGER.atInfo().log("Hello from " + this.getName() + " version " + this.getManifest().getVersion().toString());
     }
 
     @Override

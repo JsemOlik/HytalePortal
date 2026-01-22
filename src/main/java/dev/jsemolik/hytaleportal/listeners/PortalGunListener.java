@@ -100,12 +100,7 @@ public class PortalGunListener {
                 .color(color)
         );
 
-        HytalePortal.getPluginLogger().atInfo().log(
-            "Player {} created a {} portal at {}",
-            playerRef.getUsername(),
-            colorName,
-            portalPosition
-        );
+        HytalePortal.getPluginLogger().atInfo().log("Player " + playerRef.getUsername() + " created a " + colorName + " portal at " + portalPosition);
     }
 
     /**
