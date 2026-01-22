@@ -125,7 +125,7 @@ public class PortalVisualizer {
         try {
             // Log portal creation attempt
             HytalePortal.getPluginLogger().atInfo().log(
-                "Creating {} portal with {} blocks at {} positions",
+                "Creating %s portal with %s blocks at %d positions",
                 portal.getType(), blockType, framePositions.length
             );
 
@@ -138,33 +138,39 @@ public class PortalVisualizer {
 
                     if (chunk == null) {
                         HytalePortal.getPluginLogger().atInfo().log(
-                            "Chunk not loaded for portal block at {}, {}, {}",
+                            "Chunk not loaded for portal block at %d, %d, %d",
                             pos.x, pos.y, pos.z
                         );
                         continue;
                     }
 
+                    // BlockAccessor.setBlock() expects chunk-relative coordinates (0-31)
+                    // but pos contains world coordinates, so we need to convert
+                    // Chunks are 32x32x32 blocks
+                    int chunkRelativeX = pos.x & 0x1F;  // pos.x % 32
+                    int chunkRelativeY = pos.y & 0x1F;  // pos.y % 32
+                    int chunkRelativeZ = pos.z & 0x1F;  // pos.z % 32
+
                     // Use the BlockAccessor interface to place blocks
                     // Use Debug_Block for testing - it can be placed anywhere
-                    // Settings: 0x100 = skip some validation
-                    boolean placed = chunk.setBlock(pos.x, pos.y, pos.z, "Debug_Block");
+                    boolean placed = chunk.setBlock(chunkRelativeX, chunkRelativeY, chunkRelativeZ, "Debug_Block");
 
                     if (!placed) {
                         // Log if placement failed
                         HytalePortal.getPluginLogger().atInfo().log(
-                            "Failed to place {} portal block at {}, {}, {} (setBlock returned false)",
-                            portal.getType(), pos.x, pos.y, pos.z
+                            "Failed to place %s portal block at %d, %d, %d (chunk-rel: %d, %d, %d) - setBlock returned false",
+                            portal.getType(), pos.x, pos.y, pos.z, chunkRelativeX, chunkRelativeY, chunkRelativeZ
                         );
                     } else {
                         HytalePortal.getPluginLogger().atInfo().log(
-                            "Successfully placed {} portal block at {}, {}, {}",
-                            portal.getType(), pos.x, pos.y, pos.z
+                            "Successfully placed %s portal block at %d, %d, %d (chunk-rel: %d, %d, %d)",
+                            portal.getType(), pos.x, pos.y, pos.z, chunkRelativeX, chunkRelativeY, chunkRelativeZ
                         );
                     }
                 } catch (Exception e) {
                     // Log any exceptions for debugging
                     HytalePortal.getPluginLogger().atInfo().log(
-                        "Exception placing portal block at {}, {}, {}: {}",
+                        "Exception placing portal block at %d, %d, %d: %s",
                         pos.x, pos.y, pos.z, e.getMessage()
                     );
                     e.printStackTrace();
