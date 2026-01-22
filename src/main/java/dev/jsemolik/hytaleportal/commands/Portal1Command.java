@@ -2,6 +2,7 @@ package dev.jsemolik.hytaleportal.commands;
 
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3f;
+import com.hypixel.hytale.math.vector.Vector3i;
 import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.command.system.CommandContext;
 import com.hypixel.hytale.server.core.command.system.basecommands.CommandBase;
@@ -9,6 +10,7 @@ import com.hypixel.hytale.server.core.universe.Universe;
 import dev.jsemolik.hytaleportal.portal.Portal;
 import dev.jsemolik.hytaleportal.portal.PortalManager;
 import dev.jsemolik.hytaleportal.portal.PortalType;
+import dev.jsemolik.hytaleportal.util.RaycastHelper;
 
 import javax.annotation.Nonnull;
 
@@ -38,26 +40,22 @@ public class Portal1Command extends CommandBase {
 
             var playerRef = players.get(0);
 
-            // Get player position and rotation
+            // Get player position
             Vector3d playerPos = playerRef.getTransform().getPosition();
-            Vector3f playerRot = playerRef.getHeadRotation();
-
-            // Calculate portal placement (5 blocks in front)
-            double distance = 5.0;
-            float yaw = playerRot.y;
-            double yawRadians = Math.toRadians(yaw);
-
-            double x = playerPos.x - Math.sin(yawRadians) * distance;
-            double y = playerPos.y;
-            double z = playerPos.z + Math.cos(yawRadians) * distance;
-
-            Vector3d portalPosition = new Vector3d(Math.floor(x), Math.floor(y), Math.floor(z));
 
             // Get world name from player
             var world = universe.getWorld(playerRef.getWorldUuid());
             if (world == null) {
                 ctx.sendMessage(Message.raw("Could not find world!").color("red"));
                 return;
+            }
+
+            // Raycast to find target block
+            Vector3i targetBlock = RaycastHelper.getTargetBlockPosition(playerRef, world);
+            Vector3d portalPosition = RaycastHelper.calculatePortalPosition(targetBlock, playerPos);
+
+            if (targetBlock == null) {
+                ctx.sendMessage(Message.raw("No surface found! Placing at default location.").color("yellow"));
             }
 
             // Create the blue portal

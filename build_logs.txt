@@ -1,13 +1,10 @@
 > Task :compileJava FAILED
-C:\Users\olik\Desktop\Hytale\Plugins\HytalePortal\src\main\java\dev\jsemolik\hytaleportal\portal\PortalVisualizer.java:193: error: method breakBlock in interface IChunkAccessorSync<WorldChunk> cannot be applied to given types;
-                            world.breakBlock(pos.x, pos.y, pos.z, 0, 0);
-                                 ^
-  required: int,int,int,int
-  found:    int,int,int,int,int
-  reason: actual and formal argument lists differ in length
-  where WorldChunk is a type-variable:
-    WorldChunk extends BlockAccessor declared in interface IChunkAccessorSync
+C:\Users\olik\Desktop\Hytale\Plugins\HytalePortal\src\main\java\dev\jsemolik\hytaleportal\util\RaycastHelper.java:49: error: incompatible types: bad return type in lambda expression
+                        e.getMessage()
+                                    ^
+    unexpected return value
 Note: C:\Users\olik\Desktop\Hytale\Plugins\HytalePortal\src\main\java\dev\jsemolik\hytaleportal\listeners\PortalGunListener.java uses or overrides a deprecated API.
 Note: Recompile with -Xlint:deprecation for details.
+Note: Some messages have been simplified; recompile with -Xdiags:verbose to get full output
 1 error
 
