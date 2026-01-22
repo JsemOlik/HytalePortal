@@ -1,20 +1,10 @@
-C:\Users\olik\Desktop\Hytale\Plugins\HytalePortal\src\main\java\dev\jsemolik\hytaleportal\util\RaycastHelper.java:130: error: cannot find symbol
-        public final Vector3f rotation;
-                     ^
-  symbol:   class Vector3f
-  location: class PortalPlacement
-C:\Users\olik\Desktop\Hytale\Plugins\HytalePortal\src\main\java\dev\jsemolik\hytaleportal\util\RaycastHelper.java:132: error: cannot find symbol
-        public PortalPlacement(Vector3d position, Vector3f rotation) {
-                                                  ^
-  symbol:   class Vector3f
-  location: class PortalPlacement
-C:\Users\olik\Desktop\Hytale\Plugins\HytalePortal\src\main\java\dev\jsemolik\hytaleportal\util\RaycastHelper.java:83: error: cannot find symbol
-            return new PortalPlacement(pos, new Vector3f(0, 0, 0));
-                                                ^
-  symbol:   class Vector3f
-  location: class RaycastHelper
-C:\Users\olik\Desktop\Hytale\Plugins\HytalePortal\src\main\java\dev\jsemolik\hytaleportal\util\RaycastHelper.java:122: error: cannot find symbol
-        return new PortalPlacement(portalPos, new Vector3f(0, yaw, 0));
-                                                  ^
-  symbol:   class Vector3f
-  location: class RaycastHelper
+C:\Users\olik\Desktop\Hytale\Plugins\HytalePortal\src\main\java\dev\jsemolik\hytaleportal\listeners\PortalTeleportListener.java:133: error: cannot find symbol
+        Vector3i[] framePositions = portal.getFramePositions();
+        ^
+  symbol:   class Vector3i
+  location: class PortalTeleportListener
+C:\Users\olik\Desktop\Hytale\Plugins\HytalePortal\src\main\java\dev\jsemolik\hytaleportal\listeners\PortalTeleportListener.java:137: error: cannot find symbol
+        for (Vector3i blockPos : framePositions) {
+             ^
+  symbol:   class Vector3i
+  location: class PortalTeleportListener

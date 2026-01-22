@@ -3,6 +3,7 @@ package dev.jsemolik.hytaleportal.listeners;
 import com.hypixel.hytale.math.vector.Transform;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.math.vector.Vector3f;
+import com.hypixel.hytale.math.vector.Vector3i;
 import com.hypixel.hytale.server.core.HytaleServer;
 import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.universe.Universe;
@@ -24,7 +25,6 @@ import java.util.concurrent.TimeUnit;
  */
 public class PortalTeleportListener {
 
-    private static final double PORTAL_ENTRY_THRESHOLD = 1.5; // Distance to detect portal entry
     private static final long TELEPORT_COOLDOWN_MS = 1000; // 1 second cooldown after teleport
 
     // Track last teleport time for each player to prevent bouncing
@@ -99,11 +99,10 @@ public class PortalTeleportListener {
                 // Check if player is near blue portal
                 Portal bluePortal = portalPair.getBluePortal();
                 if (bluePortal != null && bluePortal.getWorldName().equals(worldName)) {
-                    double distToBlue = calculateDistance(playerPos, bluePortal.getCenterPosition());
-                    if (isPlayerNearPortal(playerPos, bluePortal)) {
+                    if (isPlayerInsidePortal(playerPos, bluePortal)) {
                         HytalePortal.getPluginLogger().atInfo().log(
-                            "Player {} entering blue portal (distance: {})",
-                            playerRef.getUsername(), distToBlue
+                            "Player {} entering blue portal",
+                            playerRef.getUsername()
                         );
                         teleportPlayer(playerRef, portalPair.getOrangePortal());
                         continue;
@@ -113,11 +112,10 @@ public class PortalTeleportListener {
                 // Check if player is near orange portal
                 Portal orangePortal = portalPair.getOrangePortal();
                 if (orangePortal != null && orangePortal.getWorldName().equals(worldName)) {
-                    double distToOrange = calculateDistance(playerPos, orangePortal.getCenterPosition());
-                    if (isPlayerNearPortal(playerPos, orangePortal)) {
+                    if (isPlayerInsidePortal(playerPos, orangePortal)) {
                         HytalePortal.getPluginLogger().atInfo().log(
-                            "Player {} entering orange portal (distance: {})",
-                            playerRef.getUsername(), distToOrange
+                            "Player {} entering orange portal",
+                            playerRef.getUsername()
                         );
                         teleportPlayer(playerRef, bluePortal);
                     }
@@ -129,12 +127,27 @@ public class PortalTeleportListener {
     }
 
     /**
-     * Check if a player is near a portal
+     * Check if a player is inside/touching a portal
      */
-    private static boolean isPlayerNearPortal(Vector3d playerPos, Portal portal) {
-        Vector3d portalCenter = portal.getCenterPosition();
-        double distance = calculateDistance(playerPos, portalCenter);
-        return distance <= PORTAL_ENTRY_THRESHOLD;
+    private static boolean isPlayerInsidePortal(Vector3d playerPos, Portal portal) {
+        // Get all portal block positions
+        Vector3i[] framePositions = portal.getFramePositions();
+        
+        // Check if player position overlaps with any portal block
+        // Player hitbox is approximately 0.6 x 1.8 x 0.6 blocks
+        for (Vector3i blockPos : framePositions) {
+            // Check if player's bounding box intersects with this block
+            // Allow some margin for easier entry
+            double margin = 0.8; // Slightly larger than player width for easier detection
+            
+            if (playerPos.x >= blockPos.x - margin && playerPos.x <= blockPos.x + 1 + margin &&
+                playerPos.y >= blockPos.y - margin && playerPos.y <= blockPos.y + 1 + margin &&
+                playerPos.z >= blockPos.z - margin && playerPos.z <= blockPos.z + 1 + margin) {
+                return true;
+            }
+        }
+        
+        return false;
     }
 
     /**
@@ -166,17 +179,42 @@ public class PortalTeleportListener {
             // Calculate destination position (center of destination portal)
             Vector3d destinationPos = destinationPortal.getCenterPosition();
 
-            // Get current player rotation (preserve it as per requirements)
-            Vector3f currentRotation = playerRef.getHeadRotation();
-
             // Teleport the player on the world thread
             destinationWorld.execute(() -> {
                 try {
-                    // Update player position
-                    playerRef.updatePosition(destinationWorld,
-                        new Transform(destinationPos, currentRotation),
-                        currentRotation
-                    );
+                    // Get entity reference and store
+                    var entityRef = playerRef.getReference();
+                    if (entityRef == null) {
+                        HytalePortal.getPluginLogger().atInfo().log("[WARN] Cannot teleport player: entity ref is null");
+                        return;
+                    }
+                    
+                    var store = entityRef.getStore();
+                    
+                    // Get current rotation components to preserve them
+                    var headRotation = store.getComponent(entityRef, 
+                        com.hypixel.hytale.server.core.modules.entity.component.HeadRotation.getComponentType());
+                    var transformComponent = store.getComponent(entityRef,
+                        com.hypixel.hytale.server.core.modules.entity.component.TransformComponent.getComponentType());
+                    
+                    if (headRotation == null || transformComponent == null) {
+                        HytalePortal.getPluginLogger().atInfo().log("[WARN] Cannot teleport player: missing components");
+                        return;
+                    }
+                    
+                    Vector3f currentHeadRot = headRotation.getRotation();
+                    Vector3f currentBodyRot = transformComponent.getRotation();
+                    
+                    // Create teleport component using the proper API
+                    var teleport = com.hypixel.hytale.server.core.modules.entity.teleport.Teleport.createForPlayer(
+                        destinationPos,
+                        currentBodyRot
+                    ).setHeadRotation(currentHeadRot);
+                    
+                    // Add the teleport component to trigger teleportation
+                    store.addComponent(entityRef, 
+                        com.hypixel.hytale.server.core.modules.entity.teleport.Teleport.getComponentType(),
+                        teleport);
 
                     // Record teleport time for cooldown
                     lastTeleportTime.put(playerRef.getUuid(), System.currentTimeMillis());
@@ -191,10 +229,12 @@ public class PortalTeleportListener {
                     HytalePortal.getPluginLogger().atInfo().log("Player " + playerRef.getUsername() + " teleported through portal to " + destinationPos);
                 } catch (Exception e) {
                     HytalePortal.getPluginLogger().atInfo().log("[ERROR] Error teleporting player " + playerRef.getUsername() + ": " + e.getMessage());
+                    e.printStackTrace();
                 }
             });
         } catch (Exception e) {
             HytalePortal.getPluginLogger().atInfo().log("[ERROR] Error in teleportPlayer: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
