@@ -34,13 +34,19 @@ public class PortalPair {
 
     /**
      * Set a portal for this player. Replaces any existing portal of the same type.
+     * @return The old portal that was replaced, or null if there was no previous portal
      */
-    public void setPortal(Portal portal) {
+    @Nullable
+    public Portal setPortal(Portal portal) {
+        Portal oldPortal = null;
         if (portal.getType() == PortalType.BLUE) {
+            oldPortal = this.bluePortal;
             this.bluePortal = portal;
         } else {
+            oldPortal = this.orangePortal;
             this.orangePortal = portal;
         }
+        return oldPortal;
     }
 
     /**

@@ -72,6 +72,12 @@ public class Portal2Command extends CommandBase {
             // Register the portal
             PortalManager.getInstance().setPortal(playerRef.getUuid(), portal);
 
+            // Debug logging
+            dev.jsemolik.hytaleportal.HytalePortal.getPluginLogger().atInfo().log(
+                "Portal2Command: Registered orange portal for player {} at position ({}, {}, {})",
+                playerRef.getUuid(), portalPosition.x, portalPosition.y, portalPosition.z
+            );
+
             // Send detailed feedback with location
             ctx.sendMessage(Message.raw("Orange Portal created!").color("gold"));
             ctx.sendMessage(Message.raw(String.format("Location: X=%.1f, Y=%.1f, Z=%.1f",

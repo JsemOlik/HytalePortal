@@ -38,21 +38,19 @@ public class HytalePortal extends JavaPlugin {
         PortalGunListener.register(this);
         PlayerDisconnectListener.register(this);
 
-        LOGGER.atInfo().log("HytalePortal plugin setup complete!");
-    }
-
-    @Override
-    protected void start() {
-        LOGGER.atInfo().log("Starting HytalePortal plugin...");
-
-        // Start the portal visualizer
+        // Initialize the portal visualizer during setup
         portalVisualizer = new PortalVisualizer();
         portalVisualizer.start();
 
         // Start the portal teleport checker
         PortalTeleportListener.start();
 
-        LOGGER.atInfo().log("HytalePortal plugin started!");
+        LOGGER.atInfo().log("HytalePortal plugin setup complete!");
+    }
+
+    @Override
+    protected void start() {
+        LOGGER.atInfo().log("HytalePortal plugin start() called!");
     }
 
     @Override

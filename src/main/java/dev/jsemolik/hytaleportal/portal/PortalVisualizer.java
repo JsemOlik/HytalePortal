@@ -23,9 +23,12 @@ public class PortalVisualizer {
      */
     public void start() {
         if (particleTask != null && !particleTask.isCancelled()) {
+            HytalePortal.getPluginLogger().atInfo().log("Portal visualizer already running");
             return; // Already running
         }
-        
+
+        HytalePortal.getPluginLogger().atInfo().log("Starting portal visualizer...");
+
         // Schedule particle updates at 20 ticks per second (50ms interval)
         particleTask = HytaleServer.SCHEDULED_EXECUTOR.scheduleAtFixedRate(
             this::updateParticles,
@@ -33,8 +36,8 @@ public class PortalVisualizer {
             50,
             TimeUnit.MILLISECONDS
         );
-        
-        HytalePortal.getPluginLogger().atInfo().log("Portal visualizer started");
+
+        HytalePortal.getPluginLogger().atInfo().log("Portal visualizer started successfully");
     }
     
     /**
@@ -54,14 +57,23 @@ public class PortalVisualizer {
     private void updateParticles() {
         try {
             PortalManager manager = PortalManager.getInstance();
-            
+            var portalPairs = manager.getAllPortalPairs();
+
+            // Debug log every 100 updates (every 5 seconds at 50ms interval)
+            if (System.currentTimeMillis() % 5000 < 50) {
+                HytalePortal.getPluginLogger().atInfo().log(
+                    "PortalVisualizer.updateParticles: Processing {} portal pairs",
+                    portalPairs.size()
+                );
+            }
+
             // Iterate through all portal pairs
-            manager.getAllPortalPairs().forEach((playerUUID, portalPair) -> {
+            portalPairs.forEach((playerUUID, portalPair) -> {
                 // Visualize blue portal
                 if (portalPair.getBluePortal() != null) {
                     visualizePortal(portalPair.getBluePortal());
                 }
-                
+
                 // Visualize orange portal
                 if (portalPair.getOrangePortal() != null) {
                     visualizePortal(portalPair.getOrangePortal());
@@ -69,6 +81,7 @@ public class PortalVisualizer {
             });
         } catch (Exception e) {
             HytalePortal.getPluginLogger().atInfo().log("[ERROR] " + "Error updating portal particles: {}", e.getMessage());
+            e.printStackTrace();
         }
     }
     
@@ -96,49 +109,74 @@ public class PortalVisualizer {
     }
     
     /**
-     * Create visual effects for a portal
-     * Currently using blocks since particle API is not fully documented
+     * Create visual effects for a portal using blocks
      */
     private void createPortalParticles(Portal portal, World world) {
         // Get all frame positions
         Vector3i[] framePositions = portal.getFramePositions();
 
-        // Try to place blocks at portal locations
         // Block type to use for visualization
-        // Blue portal: Light blue/cyan colored blocks
-        // Orange portal: Orange/gold colored blocks
+        // Blue portal: Blue crystal blocks
+        // Orange portal: Red crystal blocks
         String blockType = (portal.getType() == PortalType.BLUE) ?
-            "hytale:block_stone_polished_smooth_light" : // Placeholder - use any available block
-            "hytale:block_stone_polished_smooth";        // Placeholder - use any available block
+            "Rock_Crystal_Blue_Small" :  // Blue portal - blue crystal
+            "Rock_Crystal_Red_Small";     // Orange portal - red crystal
 
         try {
-            var chunkStore = world.getChunkStore();
+            // Log portal creation attempt
+            HytalePortal.getPluginLogger().atInfo().log(
+                "Creating {} portal with {} blocks at {} positions",
+                portal.getType(), blockType, framePositions.length
+            );
 
-            // Try to set blocks at each frame position
+            // Place blocks at each frame position
             for (Vector3i pos : framePositions) {
                 try {
                     // Get the chunk containing this position
                     long chunkCoord = calculateChunkCoordinate(pos);
                     var chunk = world.getChunkIfLoaded(chunkCoord);
 
-                    if (chunk != null) {
-                        // Try to set block using common API patterns
-                        // This might not work if the API is different
-                        // chunk.setBlock(pos, blockType);
+                    if (chunk == null) {
+                        HytalePortal.getPluginLogger().atInfo().log(
+                            "Chunk not loaded for portal block at {}, {}, {}",
+                            pos.x, pos.y, pos.z
+                        );
+                        continue;
+                    }
 
-                        // For now, just log that we would place a block here
-                        // HytalePortal.getPluginLogger().atInfo().log(
-                        //     "Would place {} block at {}, {}, {}",
-                        //     portal.getType(), pos.x(), pos.y(), pos.z()
-                        // );
+                    // Use the BlockAccessor interface to place blocks
+                    // Use Debug_Block for testing - it can be placed anywhere
+                    // Settings: 0x100 = skip some validation
+                    boolean placed = chunk.setBlock(pos.x, pos.y, pos.z, "Debug_Block");
+
+                    if (!placed) {
+                        // Log if placement failed
+                        HytalePortal.getPluginLogger().atInfo().log(
+                            "Failed to place {} portal block at {}, {}, {} (setBlock returned false)",
+                            portal.getType(), pos.x, pos.y, pos.z
+                        );
+                    } else {
+                        HytalePortal.getPluginLogger().atInfo().log(
+                            "Successfully placed {} portal block at {}, {}, {}",
+                            portal.getType(), pos.x, pos.y, pos.z
+                        );
                     }
                 } catch (Exception e) {
-                    // Silently fail - API might not support this
+                    // Log any exceptions for debugging
+                    HytalePortal.getPluginLogger().atInfo().log(
+                        "Exception placing portal block at {}, {}, {}: {}",
+                        pos.x, pos.y, pos.z, e.getMessage()
+                    );
+                    e.printStackTrace();
                 }
             }
         } catch (Exception e) {
-            // Block placement not available yet
-            // This is expected until we figure out the block API
+            // Log top-level exceptions
+            HytalePortal.getPluginLogger().atInfo().log(
+                "Exception in createPortalParticles: {}",
+                e.getMessage()
+            );
+            e.printStackTrace();
         }
     }
 
@@ -153,6 +191,52 @@ public class PortalVisualizer {
         return ((long) chunkX << 32) | (chunkZ & 0xFFFFFFFFL);
     }
     
+    /**
+     * Remove blocks for a portal (when it's destroyed or replaced)
+     */
+    public void removePortalBlocks(Portal portal) {
+        if (portal == null) {
+            return;
+        }
+
+        try {
+            World world = Universe.get().getWorld(portal.getWorldName());
+            if (world == null) {
+                return;
+            }
+
+            // Execute on world thread
+            world.execute(() -> {
+                try {
+                    Vector3i[] framePositions = portal.getFramePositions();
+                    for (Vector3i pos : framePositions) {
+                        try {
+                            long chunkCoord = calculateChunkCoordinate(pos);
+                            var chunk = world.getChunkIfLoaded(chunkCoord);
+
+                            if (chunk != null) {
+                                // Use breakBlock to remove the block
+                                chunk.breakBlock(pos.x, pos.y, pos.z);
+                            }
+                        } catch (Exception e) {
+                            // Silently fail on individual block removal
+                        }
+                    }
+                } catch (Exception e) {
+                    HytalePortal.getPluginLogger().atInfo().log(
+                        "Error removing portal blocks: {}",
+                        e.getMessage()
+                    );
+                }
+            });
+        } catch (Exception e) {
+            HytalePortal.getPluginLogger().atInfo().log(
+                "Error in removePortalBlocks: {}",
+                e.getMessage()
+            );
+        }
+    }
+
     /**
      * Check if the visualizer is running
      */

@@ -55,8 +55,30 @@ public class PortalManager {
      * Create or replace a portal for a player
      */
     public void setPortal(UUID playerUUID, Portal portal) {
+        dev.jsemolik.hytaleportal.HytalePortal.getPluginLogger().atInfo().log(
+            "PortalManager.setPortal: Storing {} portal for player {}",
+            portal.getType(), playerUUID
+        );
+
         PortalPair pair = getOrCreatePortalPair(playerUUID);
-        pair.setPortal(portal);
+        Portal oldPortal = pair.setPortal(portal);
+
+        // Remove blocks from the old portal if it existed
+        if (oldPortal != null) {
+            dev.jsemolik.hytaleportal.HytalePortal.getPluginLogger().atInfo().log(
+                "PortalManager.setPortal: Removing old {} portal",
+                oldPortal.getType()
+            );
+            dev.jsemolik.hytaleportal.HytalePortal plugin = dev.jsemolik.hytaleportal.HytalePortal.getInstance();
+            if (plugin != null && plugin.getPortalVisualizer() != null) {
+                plugin.getPortalVisualizer().removePortalBlocks(oldPortal);
+            }
+        }
+
+        dev.jsemolik.hytaleportal.HytalePortal.getPluginLogger().atInfo().log(
+            "PortalManager.setPortal: Portal stored successfully. Total portal pairs: {}",
+            portalPairs.size()
+        );
     }
 
     /**
@@ -65,8 +87,19 @@ public class PortalManager {
     public void removePortal(UUID playerUUID, PortalType type) {
         PortalPair pair = portalPairs.get(playerUUID);
         if (pair != null) {
+            // Get the portal before removing it
+            Portal portalToRemove = (type == PortalType.BLUE) ? pair.getBluePortal() : pair.getOrangePortal();
+
+            // Remove blocks
+            if (portalToRemove != null) {
+                dev.jsemolik.hytaleportal.HytalePortal plugin = dev.jsemolik.hytaleportal.HytalePortal.getInstance();
+                if (plugin != null && plugin.getPortalVisualizer() != null) {
+                    plugin.getPortalVisualizer().removePortalBlocks(portalToRemove);
+                }
+            }
+
             pair.removePortal(type);
-            
+
             // Clean up the pair if it has no portals left
             if (!pair.hasAnyPortal()) {
                 portalPairs.remove(playerUUID);
@@ -78,6 +111,19 @@ public class PortalManager {
      * Remove all portals for a player (e.g., when they disconnect)
      */
     public void removeAllPortals(UUID playerUUID) {
+        PortalPair pair = portalPairs.get(playerUUID);
+        if (pair != null) {
+            // Remove blocks for both portals
+            dev.jsemolik.hytaleportal.HytalePortal plugin = dev.jsemolik.hytaleportal.HytalePortal.getInstance();
+            if (plugin != null && plugin.getPortalVisualizer() != null) {
+                if (pair.getBluePortal() != null) {
+                    plugin.getPortalVisualizer().removePortalBlocks(pair.getBluePortal());
+                }
+                if (pair.getOrangePortal() != null) {
+                    plugin.getPortalVisualizer().removePortalBlocks(pair.getOrangePortal());
+                }
+            }
+        }
         portalPairs.remove(playerUUID);
     }
 
@@ -135,6 +181,18 @@ public class PortalManager {
      * Clear all portals (useful for plugin shutdown or reload)
      */
     public void clearAll() {
+        // Remove blocks for all portals before clearing
+        dev.jsemolik.hytaleportal.HytalePortal plugin = dev.jsemolik.hytaleportal.HytalePortal.getInstance();
+        if (plugin != null && plugin.getPortalVisualizer() != null) {
+            for (PortalPair pair : portalPairs.values()) {
+                if (pair.getBluePortal() != null) {
+                    plugin.getPortalVisualizer().removePortalBlocks(pair.getBluePortal());
+                }
+                if (pair.getOrangePortal() != null) {
+                    plugin.getPortalVisualizer().removePortalBlocks(pair.getOrangePortal());
+                }
+            }
+        }
         portalPairs.clear();
     }
 }
