@@ -88,18 +88,40 @@ public class Portal {
 
     /**
      * Get all block positions that make up the portal frame
+     * Uses rotation to determine orientation
      */
     public Vector3i[] getFramePositions() {
         Vector3i[] positions = new Vector3i[WIDTH * HEIGHT];
         int index = 0;
 
+        // Determine portal orientation based on rotation
+        // rotation.y represents the yaw (horizontal direction the portal faces)
+        float yaw = rotation.y;
+        
+        // Normalize yaw to 0-360
+        while (yaw < 0) yaw += 360;
+        while (yaw >= 360) yaw -= 360;
+        
+        // Determine if portal is on X-axis wall or Z-axis wall
+        boolean isXAxis = (yaw >= 45 && yaw < 135) || (yaw >= 225 && yaw < 315);
+        
         for (int y = 0; y < HEIGHT; y++) {
             for (int x = 0; x < WIDTH; x++) {
-                positions[index++] = new Vector3i(
-                    (int) position.x + x,
-                    (int) position.y + y,
-                    (int) position.z
-                );
+                if (isXAxis) {
+                    // Portal spans along X axis (north/south facing wall)
+                    positions[index++] = new Vector3i(
+                        (int) position.x + x,
+                        (int) position.y + y,
+                        (int) position.z
+                    );
+                } else {
+                    // Portal spans along Z axis (east/west facing wall)
+                    positions[index++] = new Vector3i(
+                        (int) position.x,
+                        (int) position.y + y,
+                        (int) position.z + x
+                    );
+                }
             }
         }
 

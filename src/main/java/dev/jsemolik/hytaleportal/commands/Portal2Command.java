@@ -52,18 +52,20 @@ public class Portal2Command extends CommandBase {
 
             // Raycast to find target block
             Vector3i targetBlock = RaycastHelper.getTargetBlockPosition(playerRef, world);
-            Vector3d portalPosition = RaycastHelper.calculatePortalPosition(targetBlock, playerPos);
+            
+            // Calculate portal placement (position and rotation)
+            RaycastHelper.PortalPlacement placement = RaycastHelper.calculatePlacement(targetBlock, playerPos);
 
             if (targetBlock == null) {
                 ctx.sendMessage(Message.raw("No surface found! Placing at default location.").color("yellow"));
             }
 
-            // Create the orange portal
+            // Create the orange portal with proper rotation
             Portal portal = new Portal(
                 playerRef.getUuid(),
                 PortalType.ORANGE,
-                portalPosition,
-                new Vector3f(0, 0, 0),
+                placement.position,
+                placement.rotation,
                 world.getName()
             );
 
@@ -72,14 +74,14 @@ public class Portal2Command extends CommandBase {
 
             // Debug logging
             dev.jsemolik.hytaleportal.HytalePortal.getPluginLogger().atInfo().log(
-                "Portal2Command: Registered orange portal for player {} at position ({}, {}, {})",
-                playerRef.getUuid(), portalPosition.x, portalPosition.y, portalPosition.z
+                "Portal2Command: Registered orange portal for player {} at position ({}, {}, {}) with rotation yaw={}",
+                playerRef.getUuid(), placement.position.x, placement.position.y, placement.position.z, placement.rotation.y
             );
 
             // Send detailed feedback with location
             ctx.sendMessage(Message.raw("Orange Portal created!").color("gold"));
             ctx.sendMessage(Message.raw(String.format("Location: X=%.1f, Y=%.1f, Z=%.1f",
-                portalPosition.x, portalPosition.y, portalPosition.z)).color("gold"));
+                placement.position.x, placement.position.y, placement.position.z)).color("gold"));
             ctx.sendMessage(Message.raw("Walk to this location to test teleportation").color("gray").italic(true));
 
         } catch (Exception e) {

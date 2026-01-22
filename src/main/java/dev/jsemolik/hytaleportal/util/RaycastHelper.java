@@ -1,6 +1,7 @@
 package dev.jsemolik.hytaleportal.util;
 
 import com.hypixel.hytale.math.vector.Vector3d;
+import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.math.vector.Vector3i;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
@@ -69,25 +70,69 @@ public class RaycastHelper {
     }
     
     /**
-     * Calculate portal position from target block
-     * Places portal adjacent to the hit surface
+     * Calculate portal position and rotation from target block and player position
+     * Places portal adjacent to the hit surface, facing the player
      */
-    public static Vector3d calculatePortalPosition(Vector3i targetBlock, Vector3d playerPos) {
+    public static PortalPlacement calculatePlacement(Vector3i targetBlock, Vector3d playerPos) {
         if (targetBlock == null) {
-            // Fallback: place in front of player based on position
-            return new Vector3d(
+            // Fallback: place in front of player
+            Vector3d pos = new Vector3d(
                 Math.floor(playerPos.x),
                 Math.floor(playerPos.y),
                 Math.floor(playerPos.z) + 5
             );
+            return new PortalPlacement(pos, new Vector3f(0, 0, 0));
         }
         
-        // Place portal at the target block position
-        // The portal will be on the surface the player is looking at
-        return new Vector3d(
-            targetBlock.x,
-            targetBlock.y,
-            targetBlock.z
-        );
+        // Calculate direction from target to player
+        double dx = playerPos.x - targetBlock.x;
+        double dy = playerPos.y - targetBlock.y;
+        double dz = playerPos.z - targetBlock.z;
+        
+        // Determine which face was hit based on which axis has the largest difference
+        double absDx = Math.abs(dx);
+        double absDz = Math.abs(dz);
+        
+        Vector3d portalPos;
+        float yaw;
+        
+        if (absDx > absDz) {
+            // Hit on X-axis face (east/west wall)
+            if (dx > 0) {
+                // Hit west face, place portal on east side
+                portalPos = new Vector3d(targetBlock.x + 1, targetBlock.y, targetBlock.z);
+                yaw = 180; // Face west (adjusted +90)
+            } else {
+                // Hit east face, place portal on west side  
+                portalPos = new Vector3d(targetBlock.x - 1, targetBlock.y, targetBlock.z);
+                yaw = 0; // Face east (adjusted +90)
+            }
+        } else {
+            // Hit on Z-axis face (north/south wall)
+            if (dz > 0) {
+                // Hit north face, place portal on south side
+                portalPos = new Vector3d(targetBlock.x, targetBlock.y, targetBlock.z + 1);
+                yaw = 270; // Face north (adjusted +90)
+            } else {
+                // Hit south face, place portal on north side
+                portalPos = new Vector3d(targetBlock.x, targetBlock.y, targetBlock.z - 1);
+                yaw = 90; // Face south (adjusted +90)
+            }
+        }
+        
+        return new PortalPlacement(portalPos, new Vector3f(0, yaw, 0));
+    }
+    
+    /**
+     * Helper class to hold portal position and rotation
+     */
+    public static class PortalPlacement {
+        public final Vector3d position;
+        public final Vector3f rotation;
+        
+        public PortalPlacement(Vector3d position, Vector3f rotation) {
+            this.position = position;
+            this.rotation = rotation;
+        }
     }
 }
