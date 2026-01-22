@@ -138,46 +138,17 @@ public class PortalVisualizer {
                 portal.getType(), blockType, framePositions.length
             );
 
-            // Place blocks at each frame position
+            // Place blocks at each frame position using world coordinates
             for (Vector3i pos : framePositions) {
                 try {
-                    // Get the chunk containing this position
-                    long chunkCoord = calculateChunkCoordinate(pos);
-                    var chunk = world.getChunkIfLoaded(chunkCoord);
-
-                    if (chunk == null) {
-                        HytalePortal.getPluginLogger().atInfo().log(
-                            "Chunk not loaded for portal block at %d, %d, %d",
-                            pos.x, pos.y, pos.z
-                        );
-                        continue;
-                    }
-
-                    // BlockAccessor.setBlock() expects chunk-relative coordinates (0-31)
-                    // but pos contains world coordinates, so we need to convert
-                    // Chunks are 32x32x32 blocks
-                    int chunkRelativeX = pos.x & 0x1F;  // pos.x % 32
-                    int chunkRelativeY = pos.y & 0x1F;  // pos.y % 32
-                    int chunkRelativeZ = pos.z & 0x1F;  // pos.z % 32
-
-                    // Use the BlockAccessor interface to place blocks
-                    // Use Debug_Block for testing - it can be placed anywhere
-                    boolean placed = chunk.setBlock(chunkRelativeX, chunkRelativeY, chunkRelativeZ, "Debug_Block");
-
-                    if (!placed) {
-                        // Log if placement failed
-                        HytalePortal.getPluginLogger().atInfo().log(
-                            "Failed to place %s portal block at %d, %d, %d (chunk-rel: %d, %d, %d) - setBlock returned false",
-                            portal.getType(), pos.x, pos.y, pos.z, chunkRelativeX, chunkRelativeY, chunkRelativeZ
-                        );
-                    } else {
-                        HytalePortal.getPluginLogger().atInfo().log(
-                            "Successfully placed %s portal block at %d, %d, %d (chunk-rel: %d, %d, %d)",
-                            portal.getType(), pos.x, pos.y, pos.z, chunkRelativeX, chunkRelativeY, chunkRelativeZ
-                        );
-                    }
+                    // World.setBlock() uses WORLD coordinates directly
+                    world.setBlock(pos.x, pos.y, pos.z, blockType);
+                    
+                    HytalePortal.getPluginLogger().atInfo().log(
+                        "Placed %s portal block at %d, %d, %d",
+                        portal.getType(), pos.x, pos.y, pos.z
+                    );
                 } catch (Exception e) {
-                    // Log any exceptions for debugging
                     HytalePortal.getPluginLogger().atInfo().log(
                         "Exception placing portal block at %d, %d, %d: %s",
                         pos.x, pos.y, pos.z, e.getMessage()
@@ -195,17 +166,6 @@ public class PortalVisualizer {
         }
     }
 
-    /**
-     * Calculate chunk coordinate from block position
-     * Most voxel games use 16-block chunks
-     */
-    private long calculateChunkCoordinate(Vector3i blockPos) {
-        int chunkX = blockPos.x >> 4; // Divide by 16
-        int chunkZ = blockPos.z >> 4; // Divide by 16
-        // Pack into long - this is a guess at the coordinate format
-        return ((long) chunkX << 32) | (chunkZ & 0xFFFFFFFFL);
-    }
-    
     /**
      * Remove blocks for a portal (when it's destroyed or replaced)
      */
@@ -229,27 +189,22 @@ public class PortalVisualizer {
                     Vector3i[] framePositions = portal.getFramePositions();
                     for (Vector3i pos : framePositions) {
                         try {
-                            long chunkCoord = calculateChunkCoordinate(pos);
-                            var chunk = world.getChunkIfLoaded(chunkCoord);
-
-                            if (chunk != null) {
-                                // Use breakBlock to remove the block
-                                chunk.breakBlock(pos.x, pos.y, pos.z);
-                            }
+                            // breakBlock requires 4 parameters: x, y, z, filler
+                            world.breakBlock(pos.x, pos.y, pos.z, 0);
                         } catch (Exception e) {
                             // Silently fail on individual block removal
                         }
                     }
                 } catch (Exception e) {
                     HytalePortal.getPluginLogger().atInfo().log(
-                        "Error removing portal blocks: {}",
+                        "Error removing portal blocks: %s",
                         e.getMessage()
                     );
                 }
             });
         } catch (Exception e) {
             HytalePortal.getPluginLogger().atInfo().log(
-                "Error in removePortalBlocks: {}",
+                "Error in removePortalBlocks: %s",
                 e.getMessage()
             );
         }
