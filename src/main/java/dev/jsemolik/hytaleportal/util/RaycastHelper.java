@@ -7,8 +7,8 @@ import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.util.TargetUtil;
 
 import javax.annotation.Nullable;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Helper class for raycasting operations
@@ -35,27 +35,31 @@ public class RaycastHelper {
             // Get the store (ComponentAccessor) from the entity reference
             var store = entityRef.getStore();
             
+            // Use an array to capture the result from the world thread
+            final Vector3i[] result = new Vector3i[1];
+            final CountDownLatch latch = new CountDownLatch(1);
+            
             // Execute raycasting on the world thread (required by TargetUtil)
-            CompletableFuture<Vector3i> future = world.execute(() -> {
+            world.execute(() -> {
                 try {
-                    return TargetUtil.getTargetBlock(
+                    result[0] = TargetUtil.getTargetBlock(
                         entityRef,
                         MAX_RAYCAST_DISTANCE,
                         store
                     );
                 } catch (Exception e) {
-                    dev.jsemolik.hytaleportal.HytalePortal.getPluginLogger().atInfo().log(
-                        "Error in raycast execution: %s",
-                        e.getMessage()
-                    );
+                    result[0] = null;
+                } finally {
+                    latch.countDown();
                 }
-                return null;
             });
             
-            // Wait for the result
-            return future.get();
+            // Wait for completion (max 5 seconds)
+            latch.await(5, TimeUnit.SECONDS);
             
-        } catch (InterruptedException | ExecutionException e) {
+            return result[0];
+            
+        } catch (Exception e) {
             dev.jsemolik.hytaleportal.HytalePortal.getPluginLogger().atInfo().log(
                 "Error getting target block: %s",
                 e.getMessage()
