@@ -64,14 +64,24 @@ public class PortalGunListener {
         // Cancel the default interaction
         event.setCancelled(true);
 
-        // Get player reference from Universe
-        PlayerRef playerRef = Universe.get().getPlayer(player.getUuid());
+        // Get player reference from the player's world
+        // Find the PlayerRef by matching the player entity reference
+        World world = player.getWorld();
+        var playerEntityRef = player.getReference();
+
+        PlayerRef playerRef = null;
+        for (var ref : world.getPlayerRefs()) {
+            if (ref.getReference().equals(playerEntityRef)) {
+                playerRef = ref;
+                break;
+            }
+        }
+
         if (playerRef == null) {
             return;
         }
 
         // Get player's look direction and position
-        World world = player.getWorld();
         Vector3d playerPos = playerRef.getTransform().getPosition();
         Vector3f playerRot = playerRef.getHeadRotation();
 

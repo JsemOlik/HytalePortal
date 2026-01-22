@@ -88,12 +88,23 @@ public class PortalTeleportListener {
 
                 // Get player position
                 Vector3d playerPos = playerRef.getTransform().getPosition();
-                String worldName = universe.getWorld(playerRef.getWorldUuid()).getName();
+
+                // Get world safely
+                var world = universe.getWorld(playerRef.getWorldUuid());
+                if (world == null) {
+                    continue; // Skip if world not found
+                }
+                String worldName = world.getName();
 
                 // Check if player is near blue portal
                 Portal bluePortal = portalPair.getBluePortal();
                 if (bluePortal != null && bluePortal.getWorldName().equals(worldName)) {
+                    double distToBlue = calculateDistance(playerPos, bluePortal.getCenterPosition());
                     if (isPlayerNearPortal(playerPos, bluePortal)) {
+                        HytalePortal.getPluginLogger().atInfo().log(
+                            "Player {} entering blue portal (distance: {})",
+                            playerRef.getUsername(), distToBlue
+                        );
                         teleportPlayer(playerRef, portalPair.getOrangePortal());
                         continue;
                     }
@@ -102,7 +113,12 @@ public class PortalTeleportListener {
                 // Check if player is near orange portal
                 Portal orangePortal = portalPair.getOrangePortal();
                 if (orangePortal != null && orangePortal.getWorldName().equals(worldName)) {
+                    double distToOrange = calculateDistance(playerPos, orangePortal.getCenterPosition());
                     if (isPlayerNearPortal(playerPos, orangePortal)) {
+                        HytalePortal.getPluginLogger().atInfo().log(
+                            "Player {} entering orange portal (distance: {})",
+                            playerRef.getUsername(), distToOrange
+                        );
                         teleportPlayer(playerRef, bluePortal);
                     }
                 }
