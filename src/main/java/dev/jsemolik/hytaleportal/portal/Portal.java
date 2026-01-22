@@ -62,9 +62,9 @@ public class Portal {
      */
     public Vector3d getCenterPosition() {
         return new Vector3d(
-            position.x() + (WIDTH / 2.0),
-            position.y() + (HEIGHT / 2.0),
-            position.z() + (WIDTH / 2.0)
+            position.x + (WIDTH / 2.0),
+            position.y + (HEIGHT / 2.0),
+            position.z + (WIDTH / 2.0)
         );
     }
 
@@ -74,16 +74,16 @@ public class Portal {
     public boolean containsPosition(Vector3d pos) {
         // Simple bounding box check
         // TODO: Improve to account for rotation
-        double minX = position.x();
-        double maxX = position.x() + WIDTH;
-        double minY = position.y();
-        double maxY = position.y() + HEIGHT;
-        double minZ = position.z();
-        double maxZ = position.z() + WIDTH;
+        double minX = position.x;
+        double maxX = position.x + WIDTH;
+        double minY = position.y;
+        double maxY = position.y + HEIGHT;
+        double minZ = position.z;
+        double maxZ = position.z + WIDTH;
 
-        return pos.x() >= minX && pos.x() <= maxX &&
-               pos.y() >= minY && pos.y() <= maxY &&
-               pos.z() >= minZ && pos.z() <= maxZ;
+        return pos.x >= minX && pos.x <= maxX &&
+               pos.y >= minY && pos.y <= maxY &&
+               pos.z >= minZ && pos.z <= maxZ;
     }
 
     /**
@@ -96,9 +96,9 @@ public class Portal {
         for (int y = 0; y < HEIGHT; y++) {
             for (int x = 0; x < WIDTH; x++) {
                 positions[index++] = new Vector3i(
-                    (int) position.x() + x,
-                    (int) position.y() + y,
-                    (int) position.z()
+                    (int) position.x + x,
+                    (int) position.y + y,
+                    (int) position.z
                 );
             }
         }
