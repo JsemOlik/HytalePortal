@@ -127,7 +127,7 @@ public class PortalTeleportListener {
     }
 
     /**
-     * Check if a player is inside/touching a portal
+     * Check if a player is inside/touching a portal AND approaching from the front
      */
     private static boolean isPlayerInsidePortal(Vector3d playerPos, Portal portal) {
         // Get all portal block positions
@@ -135,6 +135,7 @@ public class PortalTeleportListener {
         
         // Check if player position overlaps with any portal block
         // Player hitbox is approximately 0.6 x 1.8 x 0.6 blocks
+        boolean isInside = false;
         for (Vector3i blockPos : framePositions) {
             // Check if player's bounding box intersects with this block
             // Allow some margin for easier entry
@@ -143,11 +144,33 @@ public class PortalTeleportListener {
             if (playerPos.x >= blockPos.x - margin && playerPos.x <= blockPos.x + 1 + margin &&
                 playerPos.y >= blockPos.y - margin && playerPos.y <= blockPos.y + 1 + margin &&
                 playerPos.z >= blockPos.z - margin && playerPos.z <= blockPos.z + 1 + margin) {
-                return true;
+                isInside = true;
+                break;
             }
         }
         
-        return false;
+        if (!isInside) {
+            return false;
+        }
+        
+        // Check if player is approaching from the front side
+        Vector3d portalCenter = portal.getCenterPosition();
+        Vector3d portalNormal = portal.getNormalVector();
+        
+        // Vector from portal center to player
+        Vector3d toPlayer = new Vector3d(
+            playerPos.x - portalCenter.x,
+            playerPos.y - portalCenter.y,
+            playerPos.z - portalCenter.z
+        );
+        
+        // Dot product tells us which side the player is on
+        // Negative = player is on the "front" side (where it was shot from)
+        double dotProduct = toPlayer.x * portalNormal.x + 
+                           toPlayer.y * portalNormal.y + 
+                           toPlayer.z * portalNormal.z;
+        
+        return dotProduct < 0; // Only allow entry from front
     }
 
     /**

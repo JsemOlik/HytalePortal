@@ -69,6 +69,24 @@ public class Portal {
     }
 
     /**
+     * Get the normal vector (forward direction) of the portal
+     * This points outward from the surface the portal was placed on
+     */
+    public Vector3d getNormalVector() {
+        // Convert yaw rotation to a direction vector
+        // Yaw is stored in rotation.y
+        float yaw = rotation.y;
+        double radians = Math.toRadians(yaw);
+        
+        // Calculate normal vector pointing outward from portal surface
+        return new Vector3d(
+            -Math.sin(radians),
+            0,
+            Math.cos(radians)
+        );
+    }
+
+    /**
      * Check if a given position is within the portal's boundaries
      */
     public boolean containsPosition(Vector3d pos) {
